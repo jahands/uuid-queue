@@ -22,4 +22,4 @@ bucket_name = 'uuids'
   max_retries = 3       # Max retries per batch
 
 [triggers]
-crons = ["*/10 * * * *"]
+crons = ["29 * * * *", "39,49,59 * * * *"]
