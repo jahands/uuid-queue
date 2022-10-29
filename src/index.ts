@@ -65,11 +65,13 @@ async function runScheduled(env: Env) {
 		return
 	}
 
-	const existing = await env.UUIDS.get(newFile)
 	let uuids: UUIDMessage[] = []
+
+	const existing = await env.UUIDS.get(newFile)
 	if (existing) {
 		uuids = Papa.parse<UUIDMessage>(await existing.text()).data
 	}
+
 	await Promise.all(files.objects.map(async file => {
 		const data = await env.UUIDS.get(file.key)
 		if (data) {
