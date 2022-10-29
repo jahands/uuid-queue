@@ -70,7 +70,7 @@ async function runScheduled(env: Env) {
 
 		const files = await env.UUIDS.list({ prefix })
 		if (files.objects.length === 0) {
-			return
+			continue // Skip to next hour
 		}
 		processed++ // Track that we found some to process in this hour
 
