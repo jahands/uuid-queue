@@ -38,7 +38,7 @@ export default {
 		await runTask(messages, env);
 	},
 
-	async scheduled(event: any, env: Env, ctx: ExecutionContext) {
+	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
 		ctx.waitUntil(runScheduled(env));
 	},
 
