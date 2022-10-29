@@ -75,13 +75,11 @@ async function runScheduled(env: Env) {
 	}))
 
 	// Write combined file to r2
-	try {
-		await env.UUIDS.put(newFile, Papa.unparse(uuids))
-		// delete old files
-		await Promise.all(files.objects.map(async file => {
-			await env.UUIDS.delete(file.key)
-		}))
-	} catch { }
+	await env.UUIDS.put(newFile, Papa.unparse(uuids))
+	// delete old files
+	await Promise.all(files.objects.map(async file => {
+		await env.UUIDS.delete(file.key)
+	}))
 }
 
 // Replace this function with your own code!
