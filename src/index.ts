@@ -42,26 +42,16 @@ export default {
 // - Storing data in a R2 bucket
 // - Sending telemetry data to a provider.
 async function runTask(messages: UUIDMessage[], env: Env) {
-	if (messages.length < 5 && messages.every(m => m.tries < 50)) {
-		const promises = []
-		// re-queue all messages
-		for (const msg of messages) {
-			msg.tries++
-			promises.push(env.QUEUE.send(msg))
-		}
-		await Promise.all(promises)
-	} else {
-		// console.log("Received a batch of", messages.length, "messages:", messages);
-		// convert to csv
-		const csv = Papa.unparse(messages.map(msg => { return { id_type: msg.id_type, id: msg.id } }))
-		console.log(csv)
-		// upload to r2
-		const timestamp = new Date().toISOString()
-			.replaceAll('-', '/')
-			.replaceAll(':', '-')
-			.replace('.', '-')
-			.replace('T', '/')
-		const filename = `uuids/${timestamp}.csv`
-		await env.UUIDS.put(filename, csv, { httpMetadata: { contentType: "text/csv" } })
-	}
+	// console.log("Received a batch of", messages.length, "messages:", messages);
+	// convert to csv
+	const csv = Papa.unparse(messages.map(msg => { return { id_type: msg.id_type, id: msg.id } }))
+	console.log(csv)
+	// upload to r2
+	const timestamp = new Date().toISOString()
+		.replaceAll('-', '/')
+		.replaceAll(':', '-')
+		.replace('.', '-')
+		.replace('T', '/')
+	const filename = `uuids/${timestamp}.csv`
+	await env.UUIDS.put(filename, csv, { httpMetadata: { contentType: "text/csv" } })
 }
