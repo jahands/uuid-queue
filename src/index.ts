@@ -68,14 +68,14 @@ async function runScheduled(env: Env): Promise<void> {
 		}
 		const dupeMap = new Map<string, number>()
 
-		const prefix = 'uuids/' + subtractHours(i).toISOString()
+		const prefix = 'uuids_workdir/' + subtractHours(i).toISOString()
 			.replaceAll('-', '/')
 			.replace(':', '/')
 			.replaceAll(':', '-')
 			.replace('.', '-')
 			.replace('T', '/')
 			.substring(0, 14)
-		const newFile = prefix.substring(0, prefix.length - 1) + '.csv'
+		const newFile = prefix.substring(0, prefix.length - 1).replace('_workdir', '') + '.csv'
 
 		const files = await env.UUIDS.list({ prefix })
 		if (files.objects.length === 0) {
@@ -145,6 +145,6 @@ async function runTask(messages: UUIDMessage[], env: Env): Promise<void> {
 		.replaceAll(':', '-')
 		.replace('.', '-')
 		.replace('T', '/')
-	const filename = `uuids/${timestamp}.csv`
+	const filename = `uuids_workdir/${timestamp}.csv`
 	await env.UUIDS.put(filename, csv, { httpMetadata: { contentType: "text/csv" } })
 }
