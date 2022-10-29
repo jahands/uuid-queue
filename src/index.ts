@@ -4,6 +4,7 @@ import Papa from "papaparse"
 type UUIDMessage = {
 	id_type: number
 	id: string
+	tries: number
 }
 
 export default {
@@ -41,20 +42,26 @@ export default {
 // - Storing data in a R2 bucket
 // - Sending telemetry data to a provider.
 async function runTask(messages: UUIDMessage[], env: Env) {
-	// console.log("Received a batch of", messages.length, "messages:", messages);
-	// convert to csv
-	const csv = Papa.unparse(messages)
-	console.log(csv)
-	// upload to r2
-	const timestamp = new Date().toISOString()
-		.replaceAll('-', '/')
-		.replaceAll(':', '-')
-		.replace('.', '-')
-		.replace('T', '/')
-	const filename = `uuids/${timestamp}.csv`
-	await env.UUIDS.put(filename, csv, { httpMetadata: { contentType: "text/csv" } })
-	// const parsedMessages = messages.map((message) => JSON.parse(message) as UUIDMessage)
-	// If the task fails, the batch will be retried.
-	// You can configure the max_retries in the `wrangler.toml`.
-	await new Promise((resolve) => setTimeout(resolve, 3000, []));
+	if (messages.length < 5 && messages.every(m => m.tries < 50)) {
+		const promises = []
+		// re-queue all messages
+		for (const msg of messages) {
+			msg.tries++
+			promises.push(env.QUEUE.send(msg))
+		}
+		await Promise.all(promises)
+	} else {
+		// console.log("Received a batch of", messages.length, "messages:", messages);
+		// convert to csv
+		const csv = Papa.unparse(messages.map(msg => { return { id_type: msg.id_type, id: msg.id } }))
+		console.log(csv)
+		// upload to r2
+		const timestamp = new Date().toISOString()
+			.replaceAll('-', '/')
+			.replaceAll(':', '-')
+			.replace('.', '-')
+			.replace('T', '/')
+		const filename = `uuids/${timestamp}.csv`
+		await env.UUIDS.put(filename, csv, { httpMetadata: { contentType: "text/csv" } })
+	}
 }
