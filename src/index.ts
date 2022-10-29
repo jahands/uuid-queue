@@ -87,7 +87,7 @@ async function runScheduled(env: Env): Promise<void> {
 
 		const existing = await env.UUIDS.get(newFile)
 		if (existing) {
-			uuids = Papa.parse<UUIDMessage>(await existing.text()).data
+			uuids = Papa.parse<UUIDMessage>(await existing.text(), { header: true }).data
 			// Prevent duplicates
 			for (const uuid of uuids) {
 				const key = `${uuid.ts}-${uuid.id_type}-${uuid.id}`
