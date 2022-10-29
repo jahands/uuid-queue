@@ -14,10 +14,10 @@ export default {
 		ctx: ExecutionContext
 	): Promise<Response> {
 		const url = new URL(request.url)
-		// if (url.pathname === '/schedule') {
-		// 	await runScheduled(env)
-		// 	return new Response('ok')
-		// }
+		if (url.pathname === '/schedule') {
+			await runScheduled(env)
+			return new Response('ok')
+		}
 		if (request.method === 'POST') {
 			const apiKey = url.searchParams.get('key')
 			if (apiKey !== env.API_KEY) {
@@ -39,7 +39,7 @@ export default {
 	},
 
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-		ctx.waitUntil(runScheduled(env));
+		await runScheduled(env)
 	},
 
 }
@@ -105,9 +105,8 @@ async function runScheduled(env: Env) {
 		// Write combined file to r2
 		await env.UUIDS.put(newFile, Papa.unparse(uuids), { httpMetadata: { contentType: "text/csv" } })
 		// delete old files
-		await Promise.all(files.objects.map(async file => {
-			await env.UUIDS.delete(file.key)
-		}))
+		const keysToDelete = files.objects.map(file => file.key)
+		await env.UUIDS.delete(keysToDelete)
 	}
 }
 
