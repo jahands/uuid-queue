@@ -10,4 +10,5 @@ type Env = {
   UUIDS: R2Bucket
   QUEUE: Queue
   API_KEY: string
+  SENTRY_DSN: string
 }

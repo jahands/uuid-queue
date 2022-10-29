@@ -1,4 +1,4 @@
-// Import papaparse
+import Toucan from "toucan-js"
 import Papa from "papaparse"
 
 type UUIDMessage = {
@@ -39,7 +39,16 @@ export default {
 	},
 
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-		await runScheduled(env)
+		const sentry = new Toucan({
+			dsn: env.SENTRY_DSN,
+			context: event
+		});
+
+		try {
+			await runScheduled(env)
+		} catch (err) {
+			sentry.captureException(err);
+		}
 	},
 
 }
