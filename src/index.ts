@@ -41,7 +41,7 @@ export default {
 // - Storing data in a R2 bucket
 // - Sending telemetry data to a provider.
 async function runTask(messages: UUIDMessage[], env: Env) {
-	console.log("Received a batch of", messages.length, "messages:", messages);
+	// console.log("Received a batch of", messages.length, "messages:", messages);
 	// convert to csv
 	const csv = Papa.unparse(messages)
 	console.log(csv)
