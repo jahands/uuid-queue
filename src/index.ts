@@ -85,9 +85,14 @@ async function runScheduled(env: Env): Promise<void> {
 
 		let uuids: UUIDMessage[] = []
 
+		const parseOptions = {
+			header: true,
+			dynamicTyping: true
+		}
+
 		const existing = await env.UUIDS.get(newFile)
 		if (existing) {
-			uuids = Papa.parse<UUIDMessage>(await existing.text(), { header: true }).data
+			uuids = Papa.parse<UUIDMessage>(await existing.text(), parseOptions).data
 			// Prevent duplicates
 			for (const uuid of uuids) {
 				const key = `${uuid.ts}-${uuid.id_type}-${uuid.id}`
@@ -99,7 +104,7 @@ async function runScheduled(env: Env): Promise<void> {
 			const data = await env.UUIDS.get(file.key)
 			if (data) {
 				const text = await data.text()
-				const parsed = Papa.parse<UUIDMessage>(text, { header: true }).data
+				const parsed = Papa.parse<UUIDMessage>(text, parseOptions).data
 				// Add uuids (preventing duplicates)
 				for (const row of parsed) {
 					const key = `${row.ts}-${row.id_type}-${row.id}`
