@@ -81,7 +81,7 @@ async function runScheduled(env: Env) {
 	}))
 
 	// Write combined file to r2
-	await env.UUIDS.put(newFile, Papa.unparse(uuids))
+	await env.UUIDS.put(newFile, Papa.unparse(uuids), { httpMetadata: { contentType: "text/csv" } })
 	// delete old files
 	await Promise.all(files.objects.map(async file => {
 		await env.UUIDS.delete(file.key)
