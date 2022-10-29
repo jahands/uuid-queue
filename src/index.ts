@@ -49,6 +49,7 @@ async function runTask(messages: UUIDMessage[], env: Env) {
 	// upload to r2
 	const timestamp = new Date().toISOString()
 		.replaceAll('-', '/')
+		.replace(':', '/')
 		.replaceAll(':', '-')
 		.replace('.', '-')
 		.replace('T', '/')
