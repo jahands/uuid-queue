@@ -4,7 +4,6 @@ import Papa from "papaparse"
 type UUIDMessage = {
 	id_type: number
 	id: string
-	tries: number
 }
 
 export default {
@@ -13,8 +12,12 @@ export default {
 		env: Env,
 		ctx: ExecutionContext
 	): Promise<Response> {
+		const url = new URL(request.url)
+		// if (url.pathname === '/schedule') {
+		// 	await runScheduled(env)
+		// 	return new Response('ok')
+		// }
 		if (request.method === 'POST') {
-			const url = new URL(request.url)
 			const apiKey = url.searchParams.get('key')
 			if (apiKey !== env.API_KEY) {
 				return new Response('forbidden', { status: 403 })
@@ -33,6 +36,52 @@ export default {
 
 		await runTask(messages, env);
 	},
+
+	async scheduled(event: any, env: Env, ctx: ExecutionContext) {
+		ctx.waitUntil(runScheduled(env));
+	},
+
+}
+
+function subtractHours(numOfHours: number, date = new Date()) {
+	date.setHours(date.getHours() - numOfHours);
+
+	return date;
+}
+
+async function runScheduled(env: Env) {
+	const prefix = 'uuids/' + subtractHours(1).toISOString()
+		.replaceAll('-', '/')
+		.replace(':', '/')
+		.replaceAll(':', '-')
+		.replace('.', '-')
+		.replace('T', '/')
+		.substring(0, 14)
+	const newFile = prefix.substring(0, prefix.length - 1) + '.csv'
+
+
+	const files = await env.UUIDS.list({ prefix })
+	const existing = await env.UUIDS.get(newFile)
+	let uuids: UUIDMessage[] = []
+	if (existing) {
+		uuids = Papa.parse<UUIDMessage>(await existing.text()).data
+	}
+	await Promise.all(files.objects.map(async file => {
+		const data = await env.UUIDS.get(file.key)
+		if (data) {
+			const text = await data.text()
+			uuids.push(...Papa.parse<UUIDMessage>(text, { header: true }).data)
+		}
+	}))
+
+	// Write combined file to r2
+	try {
+		await env.UUIDS.put(newFile, Papa.unparse(uuids))
+		// delete old files
+		await Promise.all(files.objects.map(async file => {
+			await env.UUIDS.delete(file.key)
+		}))
+	} catch { }
 }
 
 // Replace this function with your own code!

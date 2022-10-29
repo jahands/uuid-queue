@@ -2,6 +2,7 @@ name = "uuid-queue"
 main = "src/index.ts"
 compatibility_date = "2022-10-29"
 route = "queue.uuid.rocks/*"
+usage_model = "unbound"
 
 [[r2_buckets]]
 binding = 'UUIDS' # <~ valid JavaScript variable name
@@ -19,3 +20,6 @@ bucket_name = 'uuids'
   max_batch_size = 100   # Max messages per batch
   max_batch_timeout = 30 # Max seconds to wait before batch is full
   max_retries = 3       # Max retries per batch
+
+[triggers]
+crons = ["15 * * * *"]
