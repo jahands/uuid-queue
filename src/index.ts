@@ -111,6 +111,9 @@ async function runScheduled(env: Env): Promise<void> {
 			}
 		}))
 
+		// Sort uuids by timestamp
+		uuids.sort((a, b) => a.ts - b.ts)
+
 		// Write combined file to r2
 		await env.UUIDS.put(newFile, Papa.unparse(uuids), { httpMetadata: { contentType: "text/csv" } })
 		// delete old files
