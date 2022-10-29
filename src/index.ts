@@ -2,6 +2,7 @@
 import Papa from "papaparse"
 
 type UUIDMessage = {
+	ts: number
 	id_type: number
 	id: string
 }
@@ -91,7 +92,7 @@ async function runScheduled(env: Env) {
 async function runTask(messages: UUIDMessage[], env: Env) {
 	// console.log("Received a batch of", messages.length, "messages:", messages);
 	// convert to csv
-	const csv = Papa.unparse(messages.map(msg => { return { id_type: msg.id_type, id: msg.id } }))
+	const csv = Papa.unparse(messages)
 	console.log(csv)
 	// upload to r2
 	const timestamp = new Date().toISOString()
