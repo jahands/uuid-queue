@@ -86,7 +86,7 @@ async function runScheduled(env: Env) {
 			}
 		}
 
-		await Promise.all(files.objects.map(async file => {
+		await Promise.all(files.objects.map(async (file) => {
 			const data = await env.UUIDS.get(file.key)
 			if (data) {
 				const text = await data.text()
