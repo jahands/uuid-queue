@@ -53,7 +53,7 @@ function subtractHours(numOfHours: number, date = new Date()) {
 async function runScheduled(env: Env) {
 	let processed = 0
 	// Check up to 2 hours ago
-	for (let i = 1; i <= 2; i++) {
+	for (let i = 2; i >= 1; i--) {
 		if (processed > 0) {
 			break // only process one hour at a time
 		}
