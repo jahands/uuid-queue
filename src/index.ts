@@ -14,10 +14,10 @@ export default {
 		ctx: ExecutionContext
 	): Promise<Response> {
 		const url = new URL(request.url)
-		if (url.pathname === '/schedule') {
-			await runScheduled(env)
-			return new Response('ok')
-		}
+		// if (url.pathname === '/schedule') {
+		// 	await runScheduled(env)
+		// 	return new Response('ok')
+		// }
 		if (request.method === 'POST') {
 			const apiKey = url.searchParams.get('key')
 			if (apiKey !== env.API_KEY) {
