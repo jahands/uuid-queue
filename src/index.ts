@@ -51,41 +51,49 @@ function subtractHours(numOfHours: number, date = new Date()) {
 }
 
 async function runScheduled(env: Env) {
-	const prefix = 'uuids/' + subtractHours(1).toISOString()
-		.replaceAll('-', '/')
-		.replace(':', '/')
-		.replaceAll(':', '-')
-		.replace('.', '-')
-		.replace('T', '/')
-		.substring(0, 14)
-	const newFile = prefix.substring(0, prefix.length - 1) + '.csv'
-
-	const files = await env.UUIDS.list({ prefix })
-	if (files.objects.length === 0) {
-		return
-	}
-
-	let uuids: UUIDMessage[] = []
-
-	const existing = await env.UUIDS.get(newFile)
-	if (existing) {
-		uuids = Papa.parse<UUIDMessage>(await existing.text()).data
-	}
-
-	await Promise.all(files.objects.map(async file => {
-		const data = await env.UUIDS.get(file.key)
-		if (data) {
-			const text = await data.text()
-			uuids.push(...Papa.parse<UUIDMessage>(text, { header: true }).data)
+	let processed = 0
+	// Check up to 2 hours ago
+	for (let i = 1; i <= 2; i++) {
+		if (processed > 0) {
+			break // only process one hour at a time
 		}
-	}))
+		const prefix = 'uuids/' + subtractHours(i).toISOString()
+			.replaceAll('-', '/')
+			.replace(':', '/')
+			.replaceAll(':', '-')
+			.replace('.', '-')
+			.replace('T', '/')
+			.substring(0, 14)
+		const newFile = prefix.substring(0, prefix.length - 1) + '.csv'
 
-	// Write combined file to r2
-	await env.UUIDS.put(newFile, Papa.unparse(uuids), { httpMetadata: { contentType: "text/csv" } })
-	// delete old files
-	await Promise.all(files.objects.map(async file => {
-		await env.UUIDS.delete(file.key)
-	}))
+		const files = await env.UUIDS.list({ prefix })
+		if (files.objects.length === 0) {
+			return
+		}
+		processed++ // Track that we found some to process in this hour
+
+		let uuids: UUIDMessage[] = []
+
+		const existing = await env.UUIDS.get(newFile)
+		if (existing) {
+			uuids = Papa.parse<UUIDMessage>(await existing.text()).data
+		}
+
+		await Promise.all(files.objects.map(async file => {
+			const data = await env.UUIDS.get(file.key)
+			if (data) {
+				const text = await data.text()
+				uuids.push(...Papa.parse<UUIDMessage>(text, { header: true }).data)
+			}
+		}))
+
+		// Write combined file to r2
+		await env.UUIDS.put(newFile, Papa.unparse(uuids), { httpMetadata: { contentType: "text/csv" } })
+		// delete old files
+		await Promise.all(files.objects.map(async file => {
+			await env.UUIDS.delete(file.key)
+		}))
+	}
 }
 
 // Replace this function with your own code!
