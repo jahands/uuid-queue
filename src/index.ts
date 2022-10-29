@@ -57,6 +57,8 @@ async function runScheduled(env: Env) {
 		if (processed > 0) {
 			break // only process one hour at a time
 		}
+		const dupeMap = new Map<string, number>()
+
 		const prefix = 'uuids/' + subtractHours(i).toISOString()
 			.replaceAll('-', '/')
 			.replace(':', '/')
@@ -77,13 +79,26 @@ async function runScheduled(env: Env) {
 		const existing = await env.UUIDS.get(newFile)
 		if (existing) {
 			uuids = Papa.parse<UUIDMessage>(await existing.text()).data
+			// Prevent duplicates
+			for (const uuid of uuids) {
+				const key = `${uuid.ts}-${uuid.id_type}-${uuid.id}`
+				dupeMap.set(key, 1)
+			}
 		}
 
 		await Promise.all(files.objects.map(async file => {
 			const data = await env.UUIDS.get(file.key)
 			if (data) {
 				const text = await data.text()
-				uuids.push(...Papa.parse<UUIDMessage>(text, { header: true }).data)
+				const parsed = Papa.parse<UUIDMessage>(text, { header: true }).data
+				// Add uuids (preventing duplicates)
+				for (const row of parsed) {
+					const key = `${row.ts}-${row.id_type}-${row.id}`
+					if (!dupeMap.has(key)) {
+						dupeMap.set(key, 1)
+						uuids.push(row)
+					}
+				}
 			}
 		}))
 
