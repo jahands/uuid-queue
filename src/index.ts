@@ -44,13 +44,13 @@ export default {
 
 }
 
-function subtractHours(numOfHours: number, date = new Date()) {
+function subtractHours(numOfHours: number, date = new Date()): Date {
 	date.setHours(date.getHours() - numOfHours);
 
 	return date;
 }
 
-async function runScheduled(env: Env) {
+async function runScheduled(env: Env): Promise<void> {
 	let processed = 0
 	// Check up to 2 hours ago
 	for (let i = 2; i >= 1; i--) {
@@ -116,7 +116,7 @@ async function runScheduled(env: Env) {
 // - Invoking a webhook
 // - Storing data in a R2 bucket
 // - Sending telemetry data to a provider.
-async function runTask(messages: UUIDMessage[], env: Env) {
+async function runTask(messages: UUIDMessage[], env: Env): Promise<void> {
 	// console.log("Received a batch of", messages.length, "messages:", messages);
 	// convert to csv
 	const csv = Papa.unparse(messages)
