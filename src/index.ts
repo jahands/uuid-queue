@@ -60,8 +60,11 @@ async function runScheduled(env: Env) {
 		.substring(0, 14)
 	const newFile = prefix.substring(0, prefix.length - 1) + '.csv'
 
-
 	const files = await env.UUIDS.list({ prefix })
+	if (files.objects.length === 0) {
+		return
+	}
+
 	const existing = await env.UUIDS.get(newFile)
 	let uuids: UUIDMessage[] = []
 	if (existing) {
