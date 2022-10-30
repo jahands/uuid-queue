@@ -1,11 +1,6 @@
 import Toucan from "toucan-js"
 import Papa from "papaparse"
-
-type UUIDMessage = {
-	ts: number
-	id_type: number
-	id: string
-}
+import { Env, UUIDMessage } from "./types"
 
 export default {
 	async fetch(

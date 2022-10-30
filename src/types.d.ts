@@ -12,3 +12,9 @@ type Env = {
   API_KEY: string
   SENTRY_DSN: string
 }
+
+export type UUIDMessage = {
+	ts: number
+	id_type: number
+	id: string
+}
