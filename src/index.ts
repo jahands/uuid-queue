@@ -54,6 +54,16 @@ function subtractHours(numOfHours: number, date = new Date()): Date {
 	return date;
 }
 
+function isUUIDMessage(msg: any): msg is UUIDMessage {
+	return msg !== undefined &&
+		typeof msg === 'object' &&
+		msg !== null &&
+		typeof msg.id === 'string' &&
+		msg.id.length > 0 &&
+		typeof msg.id_type === 'number' &&
+		typeof msg.ts === 'number'
+}
+
 async function runScheduled(env: Env): Promise<void> {
 	let processed = 0
 	// Check up to 2 hours ago
@@ -102,10 +112,13 @@ async function runScheduled(env: Env): Promise<void> {
 				const parsed = Papa.parse<UUIDMessage>(text, parseOptions).data
 				// Add uuids (preventing duplicates)
 				for (const row of parsed) {
-					const key = `${row.ts}-${row.id_type}-${row.id}`
-					if (!dupeMap.has(key)) {
-						dupeMap.set(key, 1)
-						uuids.push(row)
+					// Make sure it's a valid UUIDMessage before adding
+					if (isUUIDMessage(row)) {
+						const key = `${row.ts}-${row.id_type}-${row.id}`
+						if (!dupeMap.has(key)) {
+							dupeMap.set(key, 1)
+							uuids.push(row)
+						}
 					}
 				}
 			}
@@ -114,8 +127,9 @@ async function runScheduled(env: Env): Promise<void> {
 		// Sort uuids by timestamp
 		uuids.sort((a, b) => a.ts - b.ts)
 
-		// Write combined file to r2
-		await env.UUIDS.put(newFile, Papa.unparse(uuids), { httpMetadata: { contentType: "text/csv" } })
+		// Write combined file to r2 (filter out incorrect objects)
+		await env.UUIDS.put(newFile, Papa.unparse(uuids.filter((uuid) => isUUIDMessage(uuid))),
+			{ httpMetadata: { contentType: "text/csv" } })
 		// delete old files
 		const keysToDelete = files.objects.map(file => file.key)
 		await env.UUIDS.delete(keysToDelete)
@@ -130,8 +144,8 @@ async function runScheduled(env: Env): Promise<void> {
 // - Sending telemetry data to a provider.
 async function runTask(messages: UUIDMessage[], env: Env): Promise<void> {
 	// console.log("Received a batch of", messages.length, "messages:", messages);
-	// convert to csv
-	const csv = Papa.unparse(messages)
+	// convert to csv (make sure it's a valid UUIDMessage first)
+	const csv = Papa.unparse(messages.filter((uuid) => isUUIDMessage(uuid)))
 	console.log(csv)
 	// upload to r2
 	const timestamp = new Date().toISOString()
