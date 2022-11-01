@@ -2,9 +2,9 @@
 
 ## Description
 
-The goal of this project is to receive JSON objects (1 per API call) and record them to R2. The hard part about that is we don't want to invoke an R2 Write on every API call. Instead, we want to batch them up and write many at once (to save costs and make the data easier to process later.)
+I run a free API for generating UUIDs ([uuid.rocks](https://uuid.rocks)). But I wondered: is the API truely generating unique IDs on every request? With 80k requests per day, it's not exactly trivial to find out.
 
-I'm using this to save generated UUIDs from [uuid.rocks](https://uuid.rocks) to R2, in order to see if the service is ever generating duplicates (purely out of curiosity.)
+The goal of this project is to receive JSON objects from [uuid.rocks](https://uuid.rocks) (1 per API call) and record them to R2. The hard part about that is we don't want to invoke an R2 Write on every API call. Instead, we want to batch them up and write many at once (to save costs and make the data easier to process later.)
 
 How do we solve this? [Cloudflare Queues](https://blog.cloudflare.com/introducing-cloudflare-queues/)!
 
