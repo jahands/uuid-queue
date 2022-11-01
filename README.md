@@ -11,7 +11,7 @@ How do we solve this? [Cloudflare Queues](https://blog.cloudflare.com/introducin
 ## How it works
 
 1. The Worker `fetch` handler receives a JSON object and writes it to a Cloudflare Queue.
-2. The Worker `queue` handler is triggered by the Queue and writes batches of JSON object to R2 (in CSV format).
+2. The Worker `queue` handler is triggered by the Queue and writes batches of JSON object to R2 (in CSV format.)
 3. The Worker `scheduled` handler is triggered 3 times per hour and combines all batches from the previous hour into a single CSV file and writes it to R2. This is done to reduce the number of files in R2 and to make it easier to process the data later.
 
 ## How it's used
