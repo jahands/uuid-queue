@@ -2,7 +2,7 @@
 
 ## Description
 
-I run a free API for generating UUIDs ([uuid.rocks](https://uuid.rocks)). But I wondered: is the API truely generating unique IDs on every request? With 80k requests per day, it's not exactly trivial to find out.
+I run a [free API](https://uuid.rocks) for generating UUIDs and I wondered: is the API truely generating unique IDs on every request? With 80k requests per day, it's not exactly trivial to find out.
 
 The goal of this project is to receive JSON objects from [uuid.rocks](https://uuid.rocks) (1 per API call) and record them to R2. The hard part about that is we don't want to invoke an R2 Write on every API call. Instead, we want to batch them up and write many at once (to save costs and make the data easier to process later.)
 
@@ -13,6 +13,26 @@ How do we solve this? [Cloudflare Queues](https://blog.cloudflare.com/introducin
 1. The Worker `fetch` handler receives a JSON object and writes it to a Cloudflare Queue.
 2. The Worker `queue` handler is triggered by the Queue and writes batches of JSON object to R2 (in CSV format).
 3. The Worker `scheduled` handler is triggered 3 times per hour and combines all batches from the previous hour into a single CSV file and writes it to R2. This is done to reduce the number of files in R2 and to make it easier to process the data later.
+
+## How it's used
+
+In [uuid.rocks](https://uuid.rocks), I have the following code that's run on API calls to generate new UUIDs:
+```typescript
+// Function to send a generated UUID to the queue
+export async function sendToQueue(id_type: IDType, id: string, env: any) {
+  const apiKey = env.QUEUE_API_KEY;
+  const url = `https://queue.uuid.rocks?key=${apiKey}`
+  const msg: UUIDMessage = {
+    ts: new Date().getTime(),
+    id_type,
+    id
+  }
+  await fetch(url, { method: 'POST', JSON.stringify(msg) })
+}
+
+// How it's called in the uuid.rocks API:
+ctx.waitUntil(sendToQueue(format, uuid, env))
+```
 
 ## Why Cloudflare Queues?
 
