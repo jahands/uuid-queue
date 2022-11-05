@@ -92,7 +92,8 @@ async function runScheduled(env: Env): Promise<void> {
 
 		// List all files in the prefix where the files are stored every ~10-30 seconds
 		const files = await env.UUIDS.list({ prefix })
-		if (files.objects.length === 0) {
+		const objects = files.objects.slice(0, 990) // Only process the first 990 files
+		if (objects.length === 0) {
 			continue // Skip to next hour
 		}
 		processed++ // Track that we found some to process in this hour
@@ -119,34 +120,37 @@ async function runScheduled(env: Env): Promise<void> {
 			}
 		}
 
-		await Promise.all(files.objects.map(async (file) => {
-			const data = await env.UUIDS.get(file.key)
-			if (data) {
-				const text = await data.text()
-				const parsed = Papa.parse<UUIDMessage>(text, parseOptions).data
-				// Add uuids (preventing duplicates)
-				for (const row of parsed) {
-					// Make sure it's a valid UUIDMessage before adding
-					if (isUUIDMessage(row)) {
-						const key = getDedupeKey(row)
-						if (!dupeMap.has(key)) {
-							dupeMap.set(key, 1)
-							uuids.push(row)
+		const readFilePromises = []
+		for (const file of objects) {
+			const readFileFn = async () => {
+				const data = await env.UUIDS.get(file.key)
+				if (data) {
+					const text = await data.text()
+					const parsed = Papa.parse<UUIDMessage>(text, parseOptions).data
+					// Add uuids (preventing duplicates)
+					for (const row of parsed) {
+						// Make sure it's a valid UUIDMessage before adding
+						if (isUUIDMessage(row)) {
+							const key = getDedupeKey(row)
+							if (!dupeMap.has(key)) {
+								dupeMap.set(key, 1)
+								uuids.push(row)
+							}
 						}
 					}
 				}
 			}
-		}))
+			readFilePromises.push(readFileFn())
+		}
 
 		// Sort uuids by timestamp
 		uuids.sort((a, b) => a.ts - b.ts)
-
 		// Write combined csv file to R2 (filter out incorrect objects, just in case)
 		await env.UUIDS.put(newFile, Papa.unparse(uuids.filter((uuid) => isUUIDMessage(uuid))),
 			{ httpMetadata: { contentType: "text/csv" } })
 
 		// delete old files that we've combined
-		const keysToDelete = files.objects.map(file => file.key)
+		const keysToDelete = objects.map(file => file.key)
 		await env.UUIDS.delete(keysToDelete)
 	}
 }
