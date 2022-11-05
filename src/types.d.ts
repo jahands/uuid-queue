@@ -11,6 +11,8 @@ type Env = {
   QUEUE: Queue
   API_KEY: string
   SENTRY_DSN: string
+  // TODO: Try Honeycomb.io
+  HONEYCOMB_API_KEY: string
 }
 
 export type UUIDMessage = {
