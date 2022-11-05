@@ -142,6 +142,7 @@ async function runScheduled(env: Env): Promise<void> {
 			}
 			readFilePromises.push(readFileFn())
 		}
+		await Promise.all(readFilePromises)
 
 		// Sort uuids by timestamp
 		uuids.sort((a, b) => a.ts - b.ts)
