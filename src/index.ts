@@ -164,7 +164,7 @@ async function runScheduled(env: Env): Promise<void> {
 async function processBatch(messages: UUIDMessage[], env: Env): Promise<void> {
 	// convert to csv (making sure it's a valid UUIDMessage first)
 	const csv = Papa.unparse(messages.filter((uuid) => isUUIDMessage(uuid)))
-	console.log(csv)
+	console.log(messages.length)
 
 	// Create a timestamp: 2022/11/01/13/42-18-935Z
 	const timestamp = new Date().toISOString()
