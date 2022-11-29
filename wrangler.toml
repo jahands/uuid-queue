@@ -1,8 +1,9 @@
 name = "uuid-queue"
 main = "src/index.ts"
 compatibility_date = "2022-10-29"
-route = "queue.uuid.rocks/*"
 usage_model = "unbound"
+routes = []
+workers_dev = false
 
 [[r2_buckets]]
 binding = 'UUIDS' # <~ valid JavaScript variable name
