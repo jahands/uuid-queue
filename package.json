@@ -1,6 +1,6 @@
 {
   "name": "uuid-queue",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT-0",
   "devDependencies": {
     "@cloudflare/workers-types": "^3.18.0",
