@@ -4,14 +4,27 @@
   "license": "MIT-0",
   "devDependencies": {
     "@cloudflare/workers-types": "^3.18.0",
+    "@sentry/cli": "^2.16.1",
     "@types/papaparse": "^5.3.5",
+    "npm-run-all": "^4.1.5",
     "typescript": "^4.8.4",
-    "wrangler": "=0.0.0-52ce6df3"
+    "wrangler": "^2.13.0"
   },
   "private": true,
   "scripts": {
-    "start": "wrangler dev",
-    "deploy": "wrangler publish"
+    "start": "wrangler dev --local",
+    "test-and-deploy": "run-s -l test-ci clean patch-version publish:* sentry:*",
+    "deploy": "run-s -l clean patch-version publish:* sentry:*",
+    "test": "vitest",
+    "test-ci": "vitest run",
+    "start-persist": "wrangler dev --local --persist-to ./data",
+    "replit-run-command": "npm run deploy",
+    "clean": "rm -rf ./dist",
+    "patch-version": "npm version patch && scripts/pushversion.sh",
+    "publish:wrangler": "wrangler publish --outdir ./dist --var SENTRY_RELEASE:$(scripts/version.sh)",
+    "sentry:sourcemaps": "npx sentry-cli --url https://sentry.uuid.rocks sourcemaps upload ./dist/ --release $(scripts/version.sh) --org sentry --project uuid-queue",
+    "sentry:commits": "npx sentry-cli --url https://sentry.uuid.rocks releases set-commits $(scripts/version.sh) --auto --org sentry --project uuid-queue",
+    "sentry:finalize": "npx sentry-cli --url https://sentry.uuid.rocks releases finalize $(scripts/version.sh) --org sentry --project uuid-queue"
   },
   "dependencies": {
     "papaparse": "^5.3.2",
