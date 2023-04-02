@@ -42,7 +42,8 @@ export default {
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
 		const sentry = new Toucan({
 			dsn: env.SENTRY_DSN,
-			context: event
+			context: event,
+			release: env.SENTRY_RELEASE,
 		});
 
 		try {

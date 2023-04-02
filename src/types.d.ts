@@ -11,6 +11,7 @@ type Env = {
   QUEUE: Queue
   API_KEY: string
   SENTRY_DSN: string
+  SENTRY_RELEASE: string
   // TODO: Try Honeycomb.io
   HONEYCOMB_API_KEY: string
 }
